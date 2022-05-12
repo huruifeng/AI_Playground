@@ -25,7 +25,7 @@ x_min = 0.0  # min calue of 0
 def f(x):
     return x+10*np.sin(5*x)+7*np.cos(4*x)
 
-def fitness():
+def fitness(population,population_size,chromosome_size):
     fitness_value = np.zeros((population_size,))
     individual = np.zeros((population_size,))
 
@@ -41,16 +41,16 @@ def fitness():
 
     return individual,fitness_value
 
-def selection(index_ranked):
-    population_ranked = population[index_ranked,:]
+def selection(population_ranked,population_size):
     selected = population_ranked[-int(population_size/2):,:]
     return selected
 
-def crossover(selected_population):
+def crossover_mutation(selected_population,population_size,chromosome_size,mutate_rate):
     new_population = np.zeros((population_size,chromosome_size))
-    for i in range(0,population_size,2):
-        parent_1 = population[i,:]
+    for i in range(int(population_size/2)):
+        parent_1 = selected_population[i,:]
         r = np.random.randint(int(population_size/2))
+        if i == r: r = min(r+1,int(population_size/2)-1)
         parent_2 = selected_population[r,]
 
         cross_position = round(np.random.rand() * chromosome_size)
@@ -58,25 +58,23 @@ def crossover(selected_population):
             continue
 
         # exchange the genes after cross_position
-        new_population[i,:] = parent_1
-        new_population[i+1,:] = np.concatenate([parent_1[:-cross_position] , parent_2[-cross_position:]])
-    return new_population
-
-def mutation(new_population,mutate_rate):
-    for i in range(population_size):
+        child = np.concatenate([parent_1[:-cross_position] , parent_2[-cross_position:]])
         if np.random.rand() < mutate_rate:
             mutate_position = int(np.random.rand() * chromosome_size) # muation location
             if mutate_position == 0:
                 continue
-            new_population[i, mutate_position] = 1 - new_population[i, mutate_position]
+            child[mutate_position] = 1 - child[mutate_position]
+        new_population[2*i,:] = child
+        new_population[2*i+1, :] = parent_1
     return new_population
+
 
 def run_GA(population,population_size,chromosome_size,generation_size,mutate_rate):
     ## Record the generations
     fitness_best = []  # best fitness in each generation
     individual_best = []  # best individual in each generation
     for g in range(generation_size):
-        individual, fitness_value = fitness() # calculate the fitness of the individuals in current generation
+        individual, fitness_value = fitness(population,population_size,chromosome_size) # calculate the fitness of the individuals in current generation
 
         ## rank the indiidual based on the fitness_values in a decrease order
         index_ranked = np.argsort(fitness_value)
@@ -85,19 +83,19 @@ def run_GA(population,population_size,chromosome_size,generation_size,mutate_rat
         fitness_best.append(fitness_ranked[-1])
         x = x_min + (x_max-x_min)*float(individual_ranked[-1])/(2**chromosome_size-1)
         individual_best.append(x)
-        print(f'Generation:{g:3d} - Best individual: {x:.4f}, Best fitness: {fitness_ranked[0]:.4f}')
+        print(f'Generation:{g:3d} - Best individual: {x:.4f}, Best fitness: {fitness_ranked[-1]:.4f}')
 
-        selected_population = selection(index_ranked) # population selection
+        population_ranked = population[index_ranked,:]
+        selected_population = selection(population_ranked,population_size) # population selection
 
-        new_population = crossover(selected_population) # chromosome crossover
-        population = mutation(new_population, mutate_rate) # gene mutations
+        population = crossover_mutation(selected_population,population_size,chromosome_size,mutate_rate) # chromosome crossover
     return fitness_best,individual_best
 
 if __name__ == "__main__":
     ## GA parameters
     population_size = 100  # population size
     chromosome_size = 16  # number of gene on chrome.
-    generation_size = 500  # generation number
+    generation_size = 100  # generation number
     mutate_rate = 0.001  # mutation rate
 
     # initialize the population
