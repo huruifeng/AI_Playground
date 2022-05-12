@@ -95,7 +95,7 @@ if __name__ == "__main__":
     ## GA parameters
     population_size = 100  # population size
     chromosome_size = 16  # number of gene on chrome.
-    generation_size = 100  # generation number
+    generation_size = 50  # generation number
     mutate_rate = 0.001  # mutation rate
 
     # initialize the population
@@ -111,6 +111,8 @@ if __name__ == "__main__":
     x = np.linspace(0, 10, 1000)
     y = x+10*np.sin(5*x)+7*np.cos(4*x)
     plt.plot(x, y)
+    plt.axhline(y=fitness_best[-1], color='r', linestyle='--')
+    plt.axvline(x=individual_best[-1], color='r', linestyle='--')
     plt.show()
 
 
