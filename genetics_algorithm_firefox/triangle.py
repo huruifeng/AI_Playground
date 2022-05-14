@@ -55,4 +55,3 @@ class Triangle(object):
                       (self.cx, self.cy)],
                      fill=(self.color.r, self.color.g, self.color.b, self.color.a))
         return self.img_t
-
