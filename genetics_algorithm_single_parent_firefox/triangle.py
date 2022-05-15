@@ -175,12 +175,12 @@ class Canvas(object):
             return self.match_rate
         self.match_rate = 0
         self.img = Image.new('RGBA', self.size)
-        draw = ImageDraw.Draw(self.img)
-        draw.polygon([(0, 0), (0, 255), (255, 255), (255, 0)], fill=(255, 255, 255, 255))
+        # draw = ImageDraw.Draw(self.img)
+        # draw.polygon([(0, 0), (0, 255), (255, 255), (255, 0)], fill=(255, 255, 255, 255))
         for triangle in self.triangles:
             self.img = Image.alpha_composite(self.img, triangle.draw_it())
         arrs = [np.array(x) for x in list(self.img.split())]
-        for i in range(3):
+        for i in range(4):
             self.match_rate += np.sum(np.square(arrs[i]-self.target_pixels[i]))
 
     def draw_it(self, i,path):

@@ -26,8 +26,8 @@ from PIL import Image, ImageDraw
 
 from triangle import Triangle, Canvas
 
-target_image = "data/firefox_600.png"
-results_folder = "results/firefox_600"
+target_image = "data/firefox_768.png"
+results_folder = "results/firefox_768"
 if not os.path.exists(results_folder):
     os.makedirs(results_folder,exist_ok=True)
 img = Image.open(target_image).resize((256, 256)).convert('RGBA')
@@ -36,7 +36,7 @@ img_size = img.size
 
 if __name__ == "__main__":
     ## GA parameters
-    population_size = 60  # population size
+    population_size = 20  # population size
     chromosome_size = 100  # number of gene on chrome.
     generation_size = 5000000   # generation number
     mutate_rate = 0.6    # mutation rate
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     Canvas.target_pixels = [np.array(x) for x in list(img.split())]
     # Initialize population. Generate 20 individuals
     parentList = []
-    for i in range(20):
+    for i in range(population_size):
         print('Generating parent:%d' % (i))
         parentList.append(Canvas())
         parentList[i].add_triangles(chromosome_size)
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     while i < generation_size:
         childList = []
         # generate 20 individuals from previous generation
-        for j in range(20):
+        for j in range(population_size):
             childList.append(Canvas())
             childList[j].mutate_from_parent(parent)
             childList[j].calc_match_rate()
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         parent = parent if parent.match_rate < child.match_rate else child
 
         child = None
-        if i % 1000 == 0:
+        if i % 100 == 0:
             parent.draw_it(i,results_folder)
 
         ## next generation

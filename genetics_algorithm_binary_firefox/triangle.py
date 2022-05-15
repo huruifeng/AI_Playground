@@ -22,7 +22,7 @@ class Color(object):
         self.r = np.random.randint(0, 255)
         self.g = np.random.randint(0, 255)
         self.b = np.random.randint(0, 255)
-        self.a = np.random.randint(100,160)
+        self.a = np.random.randint(0,255)
 
 class Triangle(object):
     '''

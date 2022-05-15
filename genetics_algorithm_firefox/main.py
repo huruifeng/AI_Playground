@@ -37,8 +37,8 @@ def fitness(population,population_size,chromosome_size):
     for p in range(population_size):
         ## Draw a canva
         new_img = Image.new('RGBA', img_size)
-        draw = ImageDraw.Draw(new_img)
-        draw.polygon([(0, 0), (0, img_size[1]), img_size, (img_size[0], 0)], fill=(255, 255, 255, 255))
+        # draw = ImageDraw.Draw(new_img)
+        # draw.polygon([(0, 0), (0, img_size[1]), img_size, (img_size[0], 0)], fill=(255, 255, 255, 255))
         match_rate = 0
         for c in range(chromosome_size):
             chromosome_t = population[p,c]
@@ -52,7 +52,7 @@ def fitness(population,population_size,chromosome_size):
 
         ## Same as above code, but high efficient
         arrs = [np.array(x) for x in list(new_img.split())]  # split  intto R,G,B,A channel
-        for i in range(3):
+        for i in range(4):
             match_rate += np.sum(np.square(arrs[i] - target_pixels[i]))
         fitness_value[p] = match_rate
         individual[p] = p
@@ -133,8 +133,8 @@ def mutation(indvi,chromosome_size,mutate_rate):
 
 def draw_best(indvi,generation_n):
     best_img = Image.new('RGBA', img_size)
-    draw = ImageDraw.Draw(best_img)
-    draw.polygon([(0, 0), (0, img_size[1]), img_size, (img_size[0], 0)], fill=(255, 255, 255, 255))
+    # draw = ImageDraw.Draw(best_img)
+    # draw.polygon([(0, 0), (0, img_size[1]), img_size, (img_size[0], 0)], fill=(255, 255, 255, 255))
     for c in range(chromosome_size):
         chromosome_t = indvi[c] ## the best individual
         best_img = Image.alpha_composite(best_img, chromosome_t.draw_it())
@@ -163,8 +163,8 @@ def run_GA(population,population_size,chromosome_size,generation_size,mutate_rat
 
 
 
-target_image = "data/firefox_600.png"
-results_folder = "results/firefox_600"
+target_image = "data/firefox_768.png"
+results_folder = "results/firefox_768"
 if not os.path.exists(results_folder):
     os.makedirs(results_folder,exist_ok=True)
 img = Image.open(target_image).resize((256, 256)).convert('RGBA')
