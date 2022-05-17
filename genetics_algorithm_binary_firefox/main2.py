@@ -47,11 +47,11 @@ def DrawImg(individual,img_size,x_length,y_length): # Draw the image
         cx, cy = individual[p:p + x_length], individual[p + x_length:p + x_length + y_length]
         p = p + x_length + y_length
 
-        r,g,b,a = individual[p:p + 8], individual[p + 8:p + 16],individual[p+16:p + 24], individual[p + 24:p + 32]
-        p=p+32
+        r,g,b = individual[p:p + 8], individual[p + 8:p + 16],individual[p+16:p + 24]
+        p=p+24
 
         ax,ay,bx,by,cx,cy = bin2dec(ax),bin2dec(ay),bin2dec(bx),bin2dec(by),bin2dec(cx),bin2dec(cy)
-        r,g,b,a = bin2dec(r), bin2dec(g), bin2dec(b), bin2dec(a)
+        r,g,b,a = bin2dec(r), bin2dec(g), bin2dec(b), 128
 
         img_t = Image.new('RGBA', img_size)
         draw = ImageDraw.Draw(img_t)
@@ -68,39 +68,43 @@ def save_img(indvi,img_size,x_length,y_length,generation_n,results_folder):
     best_img.save(os.path.join(results_folder, str(generation_n)+".png"))
 
 
-def TargetFunc(individual,x_length,y_length):
+def TargetFunc(individual,x_length,y_length,true_pixels):
     current_img = DrawImg(individual,img_size,x_length,y_length)
     sum = 0
-    arrs = [np.array(x) for x in list(current_img.split())]  # split  intto R,G,B,A channel
-    for i in range(4):
-        sum += np.sum(np.abs(arrs[i] - target_pixels[i]))
-    fitness = 1-sum/float(img_size[0]* img_size[1]*256*4)
+    arrs = [np.array(x) for x in list(current_img.split())]  # split  intto R,G,B channel
+    for i in range(3):
+        sum += np.sum(np.abs(arrs[i] - true_pixels[i]))
+    fitness = 1-sum/float(img_size[0]* img_size[1]*255*3)
     return fitness
 
-def cal_fitness(population, x_length,y_length):
+def cal_fitness(population, x_length,y_length,true_pixels):
     n = population.shape[0]
     fitness_arr = np.zeros((n,))
     for i in range(n):
-        fitness_arr[i] = TargetFunc(population[i], x_length, y_length)
+        fitness_arr[i] = TargetFunc(population[i], x_length, y_length,true_pixels)
     return fitness_arr
 
 
 def selection(population,num, all_fitness,code_length):
-    fitness_sum = np.sum(all_fitness)
-    accP = np.cumsum(all_fitness / fitness_sum)
-    n = num
-    selected_population = np.zeros((n, code_length), dtype=np.int32)
+    # fitness_sum = np.sum(all_fitness)
+    # accP = np.cumsum(all_fitness / fitness_sum)
+    # n = num
+    # selected_population = np.zeros((n, code_length), dtype=np.int32)
+    #
+    # hasSelected = []
+    # for j in range(n):
+    #     while 1:
+    #         matrix = np.where(accP >= np.random.rand())
+    #         if matrix[0][0] in hasSelected:
+    #             continue
+    #         hasSelected.append(matrix[0][0])
+    #         break
+    #     selected_population[j, :] = population[hasSelected[j], :]
 
-    hasSelected = []
-    for j in range(n):
-        while 1:
-            matrix = np.where(accP >= np.random.rand())
-            if matrix[0][0] in hasSelected:
-                continue
-            hasSelected.append(matrix[0][0])
-            break
-        selected_population[j, :] = population[hasSelected[j], :]
-
+    ## Top N, ranked in decrease order
+    index_ranked = np.argsort(all_fitness)[::-1]
+    population_ranked = population[index_ranked, :]
+    selected_population = population_ranked[:num, :]
     return selected_population
 
 def crossover_mutation(population, kept_population,num,crossover_rate,variation_rate):
@@ -111,23 +115,16 @@ def crossover_mutation(population, kept_population,num,crossover_rate,variation_
         if np.random.rand() < crossover_rate:
             crossover_index = np.random.rand(1,code_length) < 0.5
             crossover_index2 = ~crossover_index
-            kept_population = np.concatenate([kept_population,
-                                              np.uint8(np.logical_or(np.logical_and(A, crossover_index),
-                                                                     np.logical_and(B, crossover_index2)))]
-                                             )
-            kept_population = np.concatenate([kept_population,
-                                              np.uint8( np.logical_or(np.logical_and(A, crossover_index2),
-                                                                      np.logical_and(B, crossover_index)))]
-                                             )
-    n = kept_population.shape[0]
-    mutation_index = np.random.rand(n, code_length) < variation_rate
-    kept_population = np.uint8(np.logical_xor(kept_population, mutation_index))
+            new_a = np.uint8(np.logical_or(np.logical_and(A, crossover_index),np.logical_and(B, crossover_index2)))
+            new_b = np.uint8(np.logical_or(np.logical_and(A, crossover_index2),np.logical_and(B, crossover_index)))
 
-    p = np.argmax(all_fitness)
-    kept_population = np.concatenate([kept_population,population[[p],]])
-    all_fitness[p] = -1 # 置为负数，表示该个体已被选中
-    p = np.argmax(all_fitness)
-    kept_population = np.concatenate([kept_population,population[[p],:]])
+            mutation_index = np.random.rand(1, code_length) < variation_rate
+            mut_a = np.uint8(np.logical_xor(new_a, mutation_index))
+            mutation_index = np.random.rand(1, code_length) < variation_rate
+            mut_b = np.uint8(np.logical_xor(new_b, mutation_index))
+
+            kept_population = np.concatenate([kept_population,mut_a])
+            kept_population = np.concatenate([kept_population,mut_b])
 
     return kept_population
 
@@ -143,6 +140,8 @@ if __name__ == "__main__":
     img_size = img.size
     target_pixels = [np.array(x) for x in list(img.split())]
 
+    img.save(os.path.join(results_folder, "target.png"))
+
     num = 40 #population size
     chromosomes_n = 100
     crossover_rate = 0.6
@@ -151,7 +150,7 @@ if __name__ == "__main__":
     x_code_length = int(np.ceil(np.log2(img_size[0]))) # length of encoded x
     y_code_length = int(np.ceil(np.log2(img_size[1]))) # length of encoded x
     point_code_lenght = x_code_length + y_code_length
-    color_code_length = 4*8 # R,G,B, A
+    color_code_length = 3*8 # R,G,B
     chromosomes_l = int(3*point_code_lenght + color_code_length)
     code_length = int(chromosomes_n * chromosomes_l) # code length of one chromosome
 
@@ -161,7 +160,7 @@ if __name__ == "__main__":
     generation_n = 0
     while True:
         # Calculate fitness
-        all_fitness = cal_fitness(population, x_code_length,y_code_length)
+        all_fitness = cal_fitness(population, x_code_length,y_code_length,target_pixels)
         print(f'Generation:{generation_n:3d} - '
               f'Top individual: {np.argmax(all_fitness)}, '
               f'Best fitness: {np.max(all_fitness)}')
