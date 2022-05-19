@@ -12,111 +12,115 @@
 #
 #   Ground Truth:  f(x=7.857) = 24.8553627239529
 #
-
+# http://accu.cc/content/ga/sga/
 ##--------------------------------------------
-import matplotlib
+
+import matplotlib.animation
 import  matplotlib.pyplot as plt
 import numpy as np
 
-x_max = 9.0  # max value of x
-x_min = 0.0  # min calue of 0
+class GA(object):
+    def __init__(self,pop_size=60,
+                 generations=20,
+                 gene_n = 16,
+                 cross_rate=0.6,
+                 mutate_rate=0.001,
+                 x_bound=[0,9],
+                 elitist = True
+                 ):
+        self.pop_size = pop_size
+        self.generations = generations
+        self.gene_n = gene_n
+        self.cross_rate = cross_rate
+        self.mutate_rate = mutate_rate
+        self.x_bound = x_bound
+        self.elitist = elitist
 
-## Traget function
-def f(x):
-    return x+10*np.sin(5*x)+7*np.cos(4*x)
+        self.population = np.random.randint(2, size=(self.pop_size, self.gene_n))
 
-def fitness(population,population_size,chromosome_size):
-    fitness_value = np.zeros((population_size,))
-    individual = np.zeros((population_size,))
+    def f(self,x):
+        return x + 10 * np.sin(5 * x) + 7 * np.cos(4 * x)
 
-    # convert binary to decimal
-    for i in range(population_size):
-        for j in range(chromosome_size):
-            individual[i] = individual[i] + population[i, j] * (2 ** j)
+    def cal_fitness(self):
+        temp_size = self.population.shape[0]
+        fitness_value = np.zeros((temp_size,))
+        individual = np.zeros((temp_size,))
 
-    # calculate fitness
-    for i in range(population_size):
-        x = x_min + (x_max-x_min)*float(individual[i])/(2**chromosome_size-1) # convert to [x_min,x_max]
-        fitness_value[i] = f(x)
+        # convert binary to decimal
+        for i in range(temp_size):
+            for j in range(self.gene_n):
+                individual[i] = individual[i] + self.population[i, j] * (2 ** j)
 
-    return individual,fitness_value
+        # calculate fitness
+        for i in range(temp_size):
+            x = self.x_bound[0] + (self.x_bound[1]-self.x_bound[0])*float(individual[i])/(2**self.gene_n-1) # convert to [x_min,x_max]
+            fitness_value[i] = self.f(x)
 
-def selection(population_ranked,population_size):
-    selected = population_ranked[-int(population_size/2):,:]
-    return selected
+        return individual,fitness_value
 
-def crossover_mutation(selected_population,population_size,chromosome_size,mutate_rate):
-    new_population = np.zeros((population_size,chromosome_size))
-    for i in range(int(population_size/2)):
-        parent_1 = selected_population[i,:]
-        r = np.random.randint(int(population_size/2))
-        if i == r: r = min(r+1,int(population_size/2)-1)
-        parent_2 = selected_population[r,]
+    def selection(self,fitness_values):
+        fitness_sum = np.sum(fitness_values)
+        accP = np.cumsum(fitness_values / fitness_sum)
+        selected_population = np.zeros((self.pop_size, self.gene_n), dtype=np.int32)
+        for j in range(self.pop_size):
+            idx = np.where(accP >= np.random.rand())
+            selected_population[j, :] = self.population[idx[0][0], :]
+        return selected_population
 
-        cross_position = round(np.random.rand() * chromosome_size)
-        if (cross_position == 0):
-            continue
+    def crossover(self,selected_population):
+        for i in range(0, selected_population.shape[0], 2):
+            if np.random.random() < self.cross_rate:
+                a = selected_population[i,:]
+                b = selected_population[i + 1,:]
+                p = np.random.randint(1, self.gene_n)
+                a[p:], b[p:] = b[p:], a[p:]
+                selected_population[i,:] = a
+                selected_population[i + 1,:] = b
+        return selected_population
 
-        # exchange the genes after cross_position
-        child = np.concatenate([parent_1[:-cross_position] , parent_2[-cross_position:]])
-        if np.random.rand() < mutate_rate:
-            mutate_position = int(np.random.rand() * chromosome_size) # muation location
-            if mutate_position == 0:
-                continue
-            child[mutate_position] = 1 - child[mutate_position]
-        new_population[2*i,:] = child
-        new_population[2*i+1, :] = parent_1
-    return new_population
+    def mutation(self,crossed_pop):
+        mut = np.random.choice(np.array([0, 1]), crossed_pop.shape, p=[1 - self.mutate_rate, self.mutate_rate])
+        mut_pop = np.where(mut == 1, 1 - crossed_pop, crossed_pop)
+        return mut_pop
 
+    def evolve(self):
+        for g in range(self.generations):
+            individuals,fitness_values = self.cal_fitness()
+            yield individuals, fitness_values
+            best_indvi = self.population[np.argmax(fitness_values)]
+            print(f'Generation:{g:3d} - '
+                  f'Top individual: {self.x_bound[0]+(individuals[np.argmax(fitness_values)]/(2**self.gene_n)):.6f}, '
+                  f'Best fitness: {np.max(fitness_values)}')
 
-def run_GA(population,population_size,chromosome_size,generation_size,mutate_rate):
-    ## Record the generations
-    fitness_best = []  # best fitness in each generation
-    individual_best = []  # best individual in each generation
-    for g in range(generation_size):
-        individual, fitness_value = fitness(population,population_size,chromosome_size) # calculate the fitness of the individuals in current generation
-
-        ## rank the indiidual based on the fitness_values in a decrease order
-        index_ranked = np.argsort(fitness_value)
-        individual_ranked = individual[index_ranked] # Rank the individual based on the fitness value
-        fitness_ranked = fitness_value[index_ranked]
-        fitness_best.append(fitness_ranked[-1])
-        x = x_min + (x_max-x_min)*float(individual_ranked[-1])/(2**chromosome_size-1)
-        individual_best.append(x)
-        print(f'Generation:{g:3d} - Best individual: {x:.4f}, Best fitness: {fitness_ranked[-1]:.4f}')
-
-        population_ranked = population[index_ranked,:]
-        selected_population = selection(population_ranked,population_size) # population selection
-
-        population = crossover_mutation(selected_population,population_size,chromosome_size,mutate_rate) # chromosome crossover
-    return fitness_best,individual_best
-
-if __name__ == "__main__":
-    ## GA parameters
-    population_size = 100  # population size
-    chromosome_size = 16  # number of gene on chrome.
-    generation_size = 50  # generation number
-    mutate_rate = 0.001  # mutation rate
-
-    # initialize the population
-    population = np.zeros((population_size, chromosome_size))
-    for i in range(population_size):
-        for j in range(chromosome_size):
-            population[i, j] = np.random.randint(0, 2)
-
-    fitness_best, individual_best = run_GA(population,population_size,chromosome_size,generation_size,mutate_rate)
-
-    ## plot ground truth
-    fig = plt.figure()
-    x = np.linspace(0, 10, 1000)
-    y = x+10*np.sin(5*x)+7*np.cos(4*x)
-    plt.plot(x, y)
-    plt.axhline(y=fitness_best[-1], color='r', linestyle='--')
-    plt.axvline(x=individual_best[-1], color='r', linestyle='--')
-    plt.show()
+            selected_pop = self.selection(fitness_values)
+            crossed_pop = self.crossover(selected_pop)
+            mutated_pop = self.mutation(crossed_pop)
+            self.population = mutated_pop
+            if self.elitist:
+                self.population = np.concatenate([self.population, [best_indvi]])
 
 
+ga = GA()
+gaiter = ga.evolve()
 
+## Ground truth
+fig, ax = plt.subplots()
+ax.set_xlim(-0.2, 9.2)
+ax.set_ylim(-20, 30)
+x = np.linspace(*ga.x_bound, 500)
+ax.plot(x, ga.f(x))
+sca = ax.scatter([], [], s=200, c='#CF6FC1', alpha=0.5)
+
+
+def update(*args):
+    individuals, fitness_values = next(gaiter)
+    fx = individuals
+    fv = fitness_values
+    sca.set_offsets(np.column_stack((fx, fv)))
+    # plt.savefig(f'best.png')
+
+ani = matplotlib.animation.FuncAnimation(fig, update, interval=500, repeat=False)
+plt.show()
 
 
 
