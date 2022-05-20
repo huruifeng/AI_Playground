@@ -112,7 +112,7 @@ ax.set_ylim(-20, 30)
 x = np.linspace(*ga.x_bound, 500)
 ax.plot(x, ga.f(x))
 
-sca = ax.scatter([], [], marker="X", s=60, c='#00FF00', alpha=0.8)
+sca = ax.scatter([], [], marker="X", s=100, c='#00FF00', alpha=0.8)
 
 
 def update(*args):
@@ -122,7 +122,7 @@ def update(*args):
     sca.set_offsets(np.column_stack((fx, fv)))
     # plt.savefig(f'best.png')
 
-ani = matplotlib.animation.FuncAnimation(fig, update, interval=500, repeat=False)
+ani = matplotlib.animation.FuncAnimation(fig, update, interval=1000, repeat=False)
 plt.show()
 
 
