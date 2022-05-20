@@ -20,9 +20,9 @@ import  matplotlib.pyplot as plt
 import numpy as np
 
 class GA(object):
-    def __init__(self,pop_size=60,
-                 generations=20,
-                 gene_n = 16,
+    def __init__(self,pop_size=20,
+                 generations=30,
+                 gene_n = 32,
                  cross_rate=0.6,
                  mutate_rate=0.001,
                  x_bound=[0,9],
@@ -86,10 +86,12 @@ class GA(object):
     def evolve(self):
         for g in range(self.generations):
             individuals,fitness_values = self.cal_fitness()
-            yield individuals, fitness_values
+            individuals_x =  self.x_bound[0]+(self.x_bound[1]-self.x_bound[0])*(individuals/(2**self.gene_n))
+            yield individuals_x, fitness_values
+
             best_indvi = self.population[np.argmax(fitness_values)]
             print(f'Generation:{g:3d} - '
-                  f'Top individual: {self.x_bound[0]+(individuals[np.argmax(fitness_values)]/(2**self.gene_n)):.6f}, '
+                  f'Top individual: {individuals_x[np.argmax(fitness_values)]:.6f}, '
                   f'Best fitness: {np.max(fitness_values)}')
 
             selected_pop = self.selection(fitness_values)
@@ -109,7 +111,8 @@ ax.set_xlim(-0.2, 9.2)
 ax.set_ylim(-20, 30)
 x = np.linspace(*ga.x_bound, 500)
 ax.plot(x, ga.f(x))
-sca = ax.scatter([], [], s=200, c='#CF6FC1', alpha=0.5)
+
+sca = ax.scatter([], [], marker="X", s=60, c='#00FF00', alpha=0.8)
 
 
 def update(*args):
