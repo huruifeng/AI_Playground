@@ -32,7 +32,7 @@ class GA:
     def __init__(self):
         self.pop_size = 80
         self.gene_n = 100
-        self.generarions = 5000000
+        self.generarions = 1000000
         self.cross_rate = 0.6
         self.mutate_rate = 0.008
 
@@ -69,8 +69,8 @@ class GA:
         im = self.draw_ff(indiv)
 
         # the euclidean distance of the 3-D array.
-        # d = np.linalg.norm(self.target_im - im)
-        d = np.sqrt(np.sum((self.target_im - im) ** 2))
+        d = np.linalg.norm(np.where(self.target_im > im, self.target_im - im, im - self.target_im))
+        # d = np.sqrt(np.sum((self.target_im - im) ** 2))
 
         # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
         return np.sqrt(self.target_im.size * 195075) - d
@@ -118,8 +118,8 @@ class GA:
             best_idx = np.argmax(pop_fit)
             best_fit = pop_fit[best_idx]
             best_indiv = pop[best_idx]
-            print(f'{g:0>5} {best_fit}')
-            if g % 100 == 0:
+            print(f'{g:0>5}: {best_fit} - {best_fit/97920.0}')
+            if g % 10 == 0:
                 skimage.io.imsave(os.path.join(results_folder, f'{g:0>8}.png'), ga.draw_ff(best_indiv))
 
             chd = self.select(pop, pop_fit)

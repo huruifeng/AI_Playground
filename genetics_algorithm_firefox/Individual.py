@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw
 
 
 class Triangle:
-    shape = [256, 256]
+    shape = [256, 256,3]
     def __init__(self, x, y, color, alpha):
         self.x = x
         self.y = y
@@ -28,7 +28,8 @@ class Triangle:
         self.img_t=None
 
 class Individual:
-    shape = [256, 256]
+    shape = [256, 256,3]
+    target_im = None
 
     def __init__(self):
         self.triangles = []
@@ -39,13 +40,13 @@ class Individual:
         return copy.deepcopy(self)
 
     def draw_im(self):
-        self.img = np.ones(self.shape+[3], dtype=np.uint8) * 255
+        self.img = np.ones(self.shape, dtype=np.uint8) * 255
         for t in self.triangles:
             xx, yy = skimage.draw.polygon(t.x, t.y)
             skimage.draw.set_color(self.img, (xx, yy), t.color, t.alpha)
         return self.img
 
-    def f(self):
+    def calc_fitness(self):
         im = self.draw_im()
         # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
         # the euclidean distance of the 3-D array.
