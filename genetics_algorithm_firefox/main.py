@@ -141,7 +141,7 @@ class GA:
 
 #######
 target_image = "data/firefox_768.png"
-target_shape = (128,128)
+target_shape = (128,128,3)
 
 results_folder = "results/firefox_768"
 if not os.path.exists(results_folder):
