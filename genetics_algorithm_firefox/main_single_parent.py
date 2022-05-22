@@ -57,7 +57,7 @@ class GA:
 
         Individual.target_im = self.target_im
 
-        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0)
+        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0 * 3)
 
     def generate_pop(self):
         pop = []

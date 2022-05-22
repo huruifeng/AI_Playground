@@ -45,7 +45,7 @@ class GA:
             im, target_shape, mode='reflect', preserve_range=True).astype(np.uint8)
         skimage.io.imsave(os.path.join(results_folder, f'target.png'), self.target_im)
 
-        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0)
+        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0 * 3)
 
     def generate_pop(self):
         pop = np.empty((self.pop_size,),dtype=Individual)
