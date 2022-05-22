@@ -111,7 +111,7 @@ def update(*args):
     sca.set_offsets(np.column_stack((fx, fv)))
     # plt.savefig(f'best.png')
 
-ani = matplotlib.animation.FuncAnimation(fig, update, interval=1000, repeat=False)
+ani = matplotlib.animation.FuncAnimation(fig, update, interval=600, repeat=False)
 plt.show()
 
 
