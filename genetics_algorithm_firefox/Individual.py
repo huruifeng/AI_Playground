@@ -48,8 +48,10 @@ class Individual:
 
     def calc_fitness(self):
         im = self.draw_im()
-        # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
+
         # the euclidean distance of the 3-D array.
-        d = np.linalg.norm(self.target_im - im)
-        self.fitness = (self.target_im.size * 195075) ** 0.5 - d
+        d = np.linalg.norm(np.where(self.target_im > im, self.target_im - im, im - self.target_im))
+
+        # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
+        self.fitness = np.sqrt(self.target_im.size * 195075) - d
 

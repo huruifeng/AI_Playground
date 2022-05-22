@@ -45,6 +45,8 @@ class GA:
             im, target_shape, mode='reflect', preserve_range=True).astype(np.uint8)
         skimage.io.imsave(os.path.join(results_folder, f'target.png'), self.target_im)
 
+        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0)
+
     def generate_pop(self):
         pop = np.empty((self.pop_size,),dtype=Individual)
         for i in range(self.pop_size):
@@ -70,7 +72,6 @@ class GA:
 
         # the euclidean distance of the 3-D array.
         d = np.linalg.norm(np.where(self.target_im > im, self.target_im - im, im - self.target_im))
-        # d = np.sqrt(np.sum((self.target_im - im) ** 2))
 
         # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
         return np.sqrt(self.target_im.size * 195075) - d
@@ -118,7 +119,7 @@ class GA:
             best_idx = np.argmax(pop_fit)
             best_fit = pop_fit[best_idx]
             best_indiv = pop[best_idx]
-            print(f'{g:0>5}: {best_fit} - {best_fit/97920.0}')
+            print(f'Generation:{g:0>5}: Best fitness:{best_fit} - Similarity:{best_fit/self.max_diff}')
             if g % 10 == 0:
                 skimage.io.imsave(os.path.join(results_folder, f'{g:0>8}.png'), ga.draw_ff(best_indiv))
 

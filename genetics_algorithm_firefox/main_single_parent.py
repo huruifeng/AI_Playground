@@ -35,6 +35,7 @@ results_folder = "results/firefox_768_single"
 if not os.path.exists(results_folder):
     os.makedirs(results_folder, exist_ok=True)
 
+
 Individual.shape = target_shape
 Triangle.shape = target_shape
 
@@ -55,6 +56,8 @@ class GA:
         skimage.io.imsave(os.path.join(results_folder, f'target.png'), self.target_im)
 
         Individual.target_im = self.target_im
+
+        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0)
 
     def generate_pop(self):
         pop = []
@@ -105,7 +108,8 @@ class GA:
             del childList
             gc.collect()
 
-            print('Generation:%10d - parent rate %10d, best child rate %10d' % (g, parent.fitness, child.fitness))
+            print('Generation:%10d - Parent: %10d, Best child: %10d, Similarity: %.6f'
+                  % (g, parent.fitness, child.fitness, parent.fitness/self.max_diff))
             ## replace the parent by child if child is better
             parent = parent if parent.fitness > child.fitness else child
 
