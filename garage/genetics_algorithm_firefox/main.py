@@ -65,6 +65,14 @@ class GA:
             skimage.draw.set_color(im, (xx, yy), t.color, t.alpha)
         return im
 
+    def draw_ff2(self, indiv):
+        im = Image.new('RGBA', self.target_im.shape[:2])
+        draw = ImageDraw.Draw(im)
+        draw.polygon([(0, 0), (0, 255), (255, 255), (255, 0)], fill=(255, 255, 255, 255))
+        for t in indiv.triangles:
+            im = Image.alpha_composite(im, t.draw_t2())
+        return im
+
     def f(self, indiv):
         im = self.draw_ff(indiv)
 

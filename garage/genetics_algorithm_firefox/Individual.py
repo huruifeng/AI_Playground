@@ -27,6 +27,15 @@ class Triangle:
         self.alpha = alpha
         self.img_t=None
 
+    def draw_t2(self):
+        self.img_t = Image.new('RGBA', self.shape)
+        draw = ImageDraw.Draw(self.img_t)
+        draw.polygon([(self.x[0], self.y[0]),
+                      (self.x[1], self.y[1]),
+                      (self.x[2], self.y[2])],
+                     fill=(self.color[0], self.color[1], self.color[2], int(self.alpha*256)))
+        return self.img_t
+
 class Individual:
     shape = [256, 256]
 
@@ -43,6 +52,14 @@ class Individual:
         for t in self.triangles:
             xx, yy = skimage.draw.polygon(t.x, t.y)
             skimage.draw.set_color(self.img, (xx, yy), t.color, t.alpha)
+        return self.img
+
+    def draw_im2(self):
+        self.img = Image.new('RGB', self.shape)
+        draw = ImageDraw.Draw(self.img)
+        draw.polygon([(0, 0), (0, 255), (255, 255), (255, 0)], fill=(255, 255, 255, 255))
+        for triangle in self.triangles:
+            self.img = Image.alpha_composite(self.img, triangle.draw_t2())
         return self.img
 
     def f(self):
