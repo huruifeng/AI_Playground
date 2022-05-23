@@ -15,12 +15,17 @@
 #       ax,ay, bx,by, cx,cy, r,g,b,a
 #
 # https://zhuanlan.zhihu.com/p/373939677
+# https://www.keyangou.com/topic/1143
 ##------------------------------------------
-import gc
 import os
 
+from skimage import io
+from matplotlib import pyplot as plt
+
 import numpy as np
-from PIL import Image, ImageDraw
+import skimage
+
+from datetime import datetime
 
 def bin2dec(x):
     # Converting binary into decimal
@@ -32,153 +37,140 @@ def bin2dec(x):
         m = m * 2
     return dec_num
 
-def DrawImg(individual,img_size,x_length,y_length): # Draw the image
-    ind_img = Image.new('RGBA', img_size)
-    # draw = ImageDraw.Draw(best_img)
-    # draw.polygon([(0, 0), (0, img_size[1]), img_size, (img_size[0], 0)], fill=(255, 255, 255, 255))
-    ## decode the chromosome
-    p = 0
-    for i in range(100):
-        ## each triangle
-        ax, ay = individual[p:p + x_length], individual[p + x_length:p + x_length + y_length]
-        p = p + x_length + y_length
-        bx, by = individual[p:p + x_length], individual[p + x_length:p + x_length + y_length]
-        p = p + x_length + y_length
-        cx, cy = individual[p:p + x_length], individual[p + x_length:p + x_length + y_length]
-        p = p + x_length + y_length
+class GA:
+    def __init__(self):
+        self.pop_size = 40
+        self.chr_n = 100
+        self.generarions = 1000000
+        self.cross_rate = 0.6
+        self.mutate_rate = 0.01
 
-        r,g,b,a = individual[p:p + 8], individual[p + 8:p + 16],individual[p+16:p + 24], individual[p + 24:p + 32]
-        p=p+32
+        im = skimage.io.imread(target_image)
+        if im.shape[2] == 4:
+            im = skimage.color.rgba2rgb(im)
+            im = (255 * im).astype(np.uint8)
 
-        ax,ay,bx,by,cx,cy = bin2dec(ax),bin2dec(ay),bin2dec(bx),bin2dec(by),bin2dec(cx),bin2dec(cy)
-        r,g,b,a = bin2dec(r), bin2dec(g), bin2dec(b), bin2dec(a)
+        self.target_im = skimage.transform.resize(
+            im, target_shape, mode='reflect', preserve_range=True).astype(np.uint8)
 
-        img_t = Image.new('RGBA', img_size)
-        draw = ImageDraw.Draw(img_t)
-        draw.polygon([(ax, ay),(bx, by),(cx, cy)], fill=(r, g, b, a))
+        skimage.io.imsave(os.path.join(results_folder, f'target.png'), self.target_im)
 
-        ind_img = Image.alpha_composite(ind_img, img_t)
+        self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0 * 3)
 
-    return ind_img
+        ## code: ax,ay,bx,by,cx,cy,r,g,b,a
+        self.x_code_length = int(np.ceil(np.log2(target_shape[0])))  # length of encoded x
+        self.y_code_length = int(np.ceil(np.log2(target_shape[1])))  # length of encoded y
+        chr_l= int(3 * (self.x_code_length + self.y_code_length) + 8*4)
+        self.code_length = int(self.chr_n * chr_l)
 
-def save_img(indvi,img_size,x_length,y_length,generation_n,results_folder):
-    best_img = DrawImg(indvi,img_size,x_length,y_length)
-    # draw = ImageDraw.Draw(best_img)
-    # draw.polygon([(0, 0), (0, img_size[1]), img_size, (img_size[0], 0)], fill=(255, 255, 255, 255))
-    best_img.save(os.path.join(results_folder, str(generation_n)+".png"))
+    def draw_ff(self, indiv):
+        im = np.ones(self.target_im.shape, dtype=np.uint8) * 255
+        p = 0
+        for i in range(100):
+            ## each triangle
+            ax, ay = indiv[p:p + self.x_code_length], indiv[p + self.x_code_length:p + self.x_code_length + self.y_code_length]
+            p = p + self.x_code_length + self.y_code_length
+            bx, by = indiv[p:p + self.x_code_length], indiv[p + self.x_code_length:p + self.x_code_length + self.y_code_length]
+            p = p + self.x_code_length + self.y_code_length
+            cx, cy = indiv[p:p + self.x_code_length], indiv[p + self.x_code_length:p + self.x_code_length + self.y_code_length]
+            p = p + self.x_code_length + self.y_code_length
+
+            r, g, b, a = indiv[p:p + 8], indiv[p + 8:p + 16], indiv[p + 16:p + 24], indiv[p + 24:p + 32]
+            p = p + 32
+
+            ax, ay = bin2dec(ax), bin2dec(ay)  ##Modify: ax, ay = min(255,bin2dec(ax)),min(255, bin2dec(ay))
+            bx, by = bin2dec(bx), bin2dec(by)
+            cx, cy = bin2dec(cx), bin2dec(cy)
+            r, g, b, a = bin2dec(r), bin2dec(g), bin2dec(b), bin2dec(a)/510
+
+            xx, yy = skimage.draw.polygon([ax,bx,cx],[ay,by,cy])
+            skimage.draw.set_color(im, (xx, yy), [r,g,b], a)
+        return im
+
+    def f(self, indiv):
+        im = self.draw_ff(indiv)
+
+        # the euclidean distance of the 3-D array.
+        d = np.linalg.norm(np.where(self.target_im > im, self.target_im - im, im - self.target_im))
+
+        # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
+        return np.sqrt(self.target_im.size * 195075) - d
+
+    def cal_fitness(self,population):
+        fitness = np.zeros(self.pop_size)
+        for i, indiv in enumerate(population):
+            fitness[i] = self.f(indiv)
+        return fitness
+
+    def select(self, pop, fit):
+        fit = fit - np.min(fit)
+        fit = fit + np.max(fit) / 2 + 0.01
+        idx = np.random.choice(np.arange(self.pop_size), size=self.pop_size, replace=True, p=fit / fit.sum())
+        children = []
+        for i in idx:
+            children.append(pop[i].copy())
+        return np.array(children)
+
+    def crossover(self, pop):
+        for i in range(0, self.pop_size, 2):
+            if np.random.random() < self.cross_rate:
+                ## Uniform crossover
+                A = pop[i]
+                B = pop[i + 1]
+                crossover_index = np.random.rand(1, self.code_length) < 0.5
+                crossover_index2 = ~crossover_index
+                A_new = np.uint8(np.logical_or(np.logical_and(A, crossover_index), np.logical_and(B, crossover_index2)))
+                B_new = np.uint8(np.logical_or(np.logical_and(A, crossover_index2), np.logical_and(B, crossover_index)))
+                pop[i] = A_new
+                pop[i + 1] = B_new
+        return pop
+
+    def mutate(self, pop):
+        mutation_index = np.random.rand(self.pop_size, self.code_length) < self.mutate_rate
+        pop = np.logical_xor(pop, mutation_index)
+        return pop
+
+    def evolve(self):
+        pop = np.random.randint(0, 2, (self.pop_size, self.code_length), dtype=np.int32)
+        pop_fit = self.cal_fitness(pop)
+        for g in range(self.generarions):
+            best_idx = np.argmax(pop_fit)
+            best_fit = pop_fit[best_idx]
+            best_indiv = pop[best_idx]
+            print(f'Generation:{g:0>5}: Best fitness:{best_fit} - Similarity:{best_fit/self.max_diff}')
+            if g % 20 == 0:
+                skimage.io.imsave(os.path.join(results_folder, f'{g:0>8}.png'), ga.draw_ff(best_indiv))
+
+            chd = self.select(pop, pop_fit)
+            chd = self.crossover(chd)
+            chd = self.mutate(chd)
+            chd_fit = self.cal_fitness(chd)
+
+            # if the best child is NOT better than the best parent,
+            # keep the best parent in the children population (replace the worest child)
+            best_child = np.max(chd_fit)
+            if best_child < best_fit:
+                rm_index = np.argmin(chd_fit)
+                chd[rm_index] = best_indiv
+                chd_fit[rm_index] = best_fit
+
+            pop = chd
+            pop_fit = chd_fit
+
+#######
+target_image = "data/firefox_768.png"
+target_shape = (128,128,3)
+
+results_folder = "results/firefox_768"
+if not os.path.exists(results_folder):
+    os.makedirs(results_folder, exist_ok=True)
+
+ga = GA()
+ga.evolve()
 
 
-def TargetFunc(individual,x_length,y_length):
-    current_img = DrawImg(individual,img_size,x_length,y_length)
-    sum = 0
-    arrs = [np.array(x) for x in list(current_img.split())]  # split  intto R,G,B,A channel
-    for i in range(4):
-        sum += np.sum(np.abs(arrs[i] - target_pixels[i]))
-    fitness = 1-sum/float(img_size[0]* img_size[1]*256*4)
-    return fitness
-
-def cal_fitness(population, x_length,y_length):
-    n = population.shape[0]
-    fitness_arr = np.zeros((n,))
-    for i in range(n):
-        fitness_arr[i] = TargetFunc(population[i], x_length, y_length)
-    return fitness_arr
 
 
-def selection(population,num, all_fitness,code_length):
-    fitness_sum = np.sum(all_fitness)
-    accP = np.cumsum(all_fitness / fitness_sum)
-    n = num
-    selected_population = np.zeros((n, code_length), dtype=np.int32)
-
-    hasSelected = []
-    for j in range(n):
-        while 1:
-            matrix = np.where(accP >= np.random.rand())
-            if matrix[0][0] in hasSelected:
-                continue
-            hasSelected.append(matrix[0][0])
-            break
-        selected_population[j, :] = population[hasSelected[j], :]
-
-    return selected_population
-
-def crossover_mutation(population, kept_population,num,crossover_rate,variation_rate):
-    pair_matrix = np.random.permutation(num)
-    for j in range(int(num/2)):
-        A = np.uint8(kept_population[pair_matrix[2 * j + 1], :])
-        B = np.uint8(kept_population[pair_matrix[2 * j], :])
-        if np.random.rand() < crossover_rate:
-            crossover_index = np.random.rand(1,code_length) < 0.5
-            crossover_index2 = ~crossover_index
-            kept_population = np.concatenate([kept_population,
-                                              np.uint8(np.logical_or(np.logical_and(A, crossover_index),
-                                                                     np.logical_and(B, crossover_index2)))]
-                                             )
-            kept_population = np.concatenate([kept_population,
-                                              np.uint8( np.logical_or(np.logical_and(A, crossover_index2),
-                                                                      np.logical_and(B, crossover_index)))]
-                                             )
-    n = kept_population.shape[0]
-    mutation_index = np.random.rand(n, code_length) < variation_rate
-    kept_population = np.uint8(np.logical_xor(kept_population, mutation_index))
-
-    p = np.argmax(all_fitness)
-    kept_population = np.concatenate([kept_population,population[[p],]])
-    all_fitness[p] = -1 # 置为负数，表示该个体已被选中
-    p = np.argmax(all_fitness)
-    kept_population = np.concatenate([kept_population,population[[p],:]])
-
-    return kept_population
-
-
-######################
-if __name__ == "__main__":
-    target_image = "data/firefox_768.png"
-    results_folder = "results/firefox_768"
-    if not os.path.exists(results_folder):
-        os.makedirs(results_folder,exist_ok=True)
-    img = Image.open(target_image).resize((256, 256)).convert('RGBA')
-    img_size = img.size
-    target_pixels = [np.array(x) for x in list(img.split())]
-
-    num = 40 #population size
-    chromosomes_n = 100
-    crossover_rate = 0.6
-    variation_rate = 0.002
-
-    x_code_length = int(np.ceil(np.log2(img_size[0]))) # length of encoded x
-    y_code_length = int(np.ceil(np.log2(img_size[1]))) # length of encoded x
-    point_code_lenght = x_code_length + y_code_length
-    color_code_length = 4*8 # R,G,B, A
-    chromosomes_l = int(3*point_code_lenght + color_code_length)
-    code_length = int(chromosomes_n * chromosomes_l) # code length of one chromosome
-
-    # Initialization
-    population = np.random.randint(0,2,(num,code_length),dtype=np.int32)
-
-    generation_n = 0
-    while True:
-        # Calculate fitness
-        all_fitness = cal_fitness(population, x_code_length,y_code_length)
-        print(f'Generation:{generation_n:3d} - '
-              f'Top individual: {np.argmax(all_fitness)}, '
-              f'Best fitness: {np.max(all_fitness)}')
-        if generation_n % 100 == 0:
-            best_indvi = population[np.argmax(all_fitness)]
-            save_img(best_indvi,img_size,x_code_length,y_code_length,generation_n,results_folder)
-
-        # Selection
-        selected_population = selection(population, num, all_fitness,code_length)
-
-        # Crossover and mutation
-        new_population = crossover_mutation(population,selected_population,num,crossover_rate,variation_rate)
-
-        del population
-        gc.collect()
-        population = new_population
-
-        generation_n += 1
 
 
 

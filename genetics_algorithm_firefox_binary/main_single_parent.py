@@ -25,7 +25,7 @@ from matplotlib import pyplot as plt
 
 import numpy as np
 import skimage
-from Individual import Individual, Triangle
+
 
 #######
 target_image = "data/firefox_768.png"
@@ -36,14 +36,22 @@ if not os.path.exists(results_folder):
     os.makedirs(results_folder, exist_ok=True)
 
 
-Individual.shape = target_shape
-Triangle.shape = target_shape
+def bin2dec(x):
+    # Converting binary into decimal
+    dec_num = 0
+    m = 1
+    for digit in x:
+        digit = int(digit)
+        dec_num = dec_num + (digit * m)
+        m = m * 2
+    return dec_num
 
 class GA:
     def __init__(self):
-        self.pop_size = 30
-        self.gene_n = 100
+        self.pop_size = 40
+        self.chr_n = 100
         self.generarions = 1000000
+        self.cross_rate = 0.6
         self.mutate_rate = 0.01
 
         im = skimage.io.imread(target_image)
@@ -53,43 +61,69 @@ class GA:
 
         self.target_im = skimage.transform.resize(
             im, target_shape, mode='reflect', preserve_range=True).astype(np.uint8)
-        skimage.io.imsave(os.path.join(results_folder, f'target.png'), self.target_im)
 
-        Individual.target_im = self.target_im
+        skimage.io.imsave(os.path.join(results_folder, f'target.png'), self.target_im)
 
         self.max_diff = np.sqrt(self.target_im.size * 255.0 * 255.0 * 3)
 
-    def generate_pop(self):
-        pop = []
-        for i in range(self.pop_size):
-            print('Generating parent:%d' % (i))
-            indiv_i = Individual()
-            for j in range(self.gene_n):
-                x = np.random.randint(0, self.target_im.shape[0], 3, dtype=np.uint8)
-                y = np.random.randint(0, self.target_im.shape[1], 3, dtype=np.uint8)
-                color = np.random.randint(0, 256, 3)
-                alpha = np.random.random() * 0.45
-                indiv_i.triangles.append(Triangle(x, y, color, alpha))
-                indiv_i.calc_fitness()
+        ## code: ax,ay,bx,by,cx,cy,r,g,b,a
+        self.x_code_length = int(np.ceil(np.log2(target_shape[0])))  # length of encoded x
+        self.y_code_length = int(np.ceil(np.log2(target_shape[1])))  # length of encoded y
+        chr_l = int(3 * (self.x_code_length + self.y_code_length) + 8 * 4)
+        self.code_length = int(self.chr_n * chr_l)
 
-            pop.append(indiv_i)
-        return pop
+    def draw_ff(self, indiv):
+        im = np.ones(self.target_im.shape, dtype=np.uint8) * 255
+        p = 0
+        for i in range(100):
+            ## each triangle
+            ax, ay = indiv[p:p + self.x_code_length], indiv[p + self.x_code_length:p + self.x_code_length + self.y_code_length]
+            p = p + self.x_code_length + self.y_code_length
+            bx, by = indiv[p:p + self.x_code_length], indiv[p + self.x_code_length:p + self.x_code_length + self.y_code_length]
+            p = p + self.x_code_length + self.y_code_length
+            cx, cy = indiv[p:p + self.x_code_length], indiv[p + self.x_code_length:p + self.x_code_length + self.y_code_length]
+            p = p + self.x_code_length + self.y_code_length
+
+            r, g, b, a = indiv[p:p + 8], indiv[p + 8:p + 16], indiv[p + 16:p + 24], indiv[p + 24:p + 32]
+            p = p + 32
+
+            ax, ay = bin2dec(ax), bin2dec(ay)  ##Modify: ax, ay = min(255,bin2dec(ax)),min(255, bin2dec(ay))
+            bx, by = bin2dec(bx), bin2dec(by)
+            cx, cy = bin2dec(cx), bin2dec(cy)
+            r, g, b, a = bin2dec(r), bin2dec(g), bin2dec(b), bin2dec(a)/510
+
+            xx, yy = skimage.draw.polygon([ax,bx,cx],[ay,by,cy])
+            skimage.draw.set_color(im, (xx, yy), [r,g,b], a)
+        return im
+
+    def f(self, indiv):
+        im = self.draw_ff(indiv)
+
+        # the euclidean distance of the 3-D array.
+        d = np.linalg.norm(np.where(self.target_im > im, self.target_im - im, im - self.target_im))
+
+        # The bigest diatance (self.target_im.size * ((3 * 255 ** 2) ** 0.5) ** 2) ** 0.5
+        return np.sqrt(self.target_im.size * 195075) - d
+
+    def cal_fitness(self,population):
+        fitness = np.zeros(self.pop_size)
+        for i, indiv in enumerate(population):
+            fitness[i] = self.f(indiv)
+        return fitness
 
     def mutate(self, indiv):
         indiv = indiv.copy()
-        for t in indiv.triangles:
-            if np.random.random() < self.mutate_rate:
-                t.x = np.random.randint(0, self.target_im.shape[0], 3, dtype=np.uint8)
-                t.y = np.random.randint(0, self.target_im.shape[1], 3, dtype=np.uint8)
-                t.color = np.random.randint(0, 256, 3)
-                t.alpha = np.random.random() * 0.45
+        mutation_index = np.random.rand(self.code_length) < self.mutate_rate
+        indiv = np.logical_xor(indiv, mutation_index)
         return indiv
 
     def evolve(self):
-        pop = self.generate_pop()
+        pop = np.random.randint(0, 2, (self.pop_size, self.code_length), dtype=np.int32)
+        pop_fit = self.cal_fitness(pop)
 
         # Select the best one
-        parent = sorted(pop, key=lambda x: x.fitness)[-1]
+        parent = pop[np.argmax(pop_fit)]
+        parent_fit = np.max(pop_fit)
         del pop
         gc.collect()
 
@@ -100,23 +134,26 @@ class GA:
             # generate individuals from previous generation
             for j in range(self.pop_size):
                 indiv_j = self.mutate(parent)
-                indiv_j.calc_fitness()
                 childList.append(indiv_j)
 
+            child_fit = self.cal_fitness(childList)
+
             # Select the best one
-            child = sorted(childList, key=lambda x: x.fitness)[-1]
+            child = childList[np.argmax(child_fit)]
+            child_best_fit = np.max(child_fit)
             del childList
             gc.collect()
 
-            print('Generation:%10d - Parent: %10d, Best child: %10d, Similarity: %.6f'
-                  % (g, parent.fitness, child.fitness, parent.fitness/self.max_diff))
+            print('Generation:%8d - Parent: %7d, Best child: %7d, Similarity: %.6f'
+                  % (g, parent_fit, child_best_fit, parent_fit/self.max_diff))
             ## replace the parent by child if child is better
-            parent = parent if parent.fitness > child.fitness else child
+            if parent_fit < child_best_fit:
+                parent = child
+                parent_fit = child_best_fit
 
             child = None
             if g % 20 == 0:
-                parent.draw_im()
-                skimage.io.imsave(os.path.join(results_folder, f'{g:0>8}.png'), parent.img)
+                skimage.io.imsave(os.path.join(results_folder, f'{g:0>8}.png'), self.draw_ff(parent))
 
             ## next generation
             g += 1

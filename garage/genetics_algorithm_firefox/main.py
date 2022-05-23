@@ -15,6 +15,7 @@
 #       ax,ay, bx,by, cx,cy, r,g,b,a
 #
 # https://www.pianshen.com/article/7818211114/
+# http://accu.cc/content/ga/evolve/
 ##------------------------------------------
 import os
 
