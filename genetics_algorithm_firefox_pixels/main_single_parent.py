@@ -8,7 +8,7 @@
 ##--------------------------------------------
 # Using the Genetic Algorithm(GA) to draw
 #   the FireFox logo
-# https://www.cfanz.cn/resource/detail/ZzmQvALXBMEDN
+#
 ##------------------------------------------
 import gc
 import os
