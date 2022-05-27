@@ -50,7 +50,7 @@ class GA:
     def __init__(self):
         self.pop_size = 40
         self.chr_n = 100
-        self.generarions = 1000000
+        self.generations = 1000000
         self.cross_rate = 0.6
         self.mutate_rate = 0.01
 
@@ -129,7 +129,7 @@ class GA:
 
         # Start GA
         g = 0
-        while g < self.generarions:
+        while g < self.generations:
             childList = []
             # generate individuals from previous generation
             for j in range(self.pop_size):

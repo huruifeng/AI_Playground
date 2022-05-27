@@ -55,7 +55,7 @@ def init_pop(pop_size=20):
     return pop
 
 def mutation(parent,mutation_rate):
-    width = 2
+    width = 5
 
     x, y, z = target_img.shape
     indv_m =parent.copy()

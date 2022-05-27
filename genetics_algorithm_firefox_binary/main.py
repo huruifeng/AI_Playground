@@ -41,7 +41,7 @@ class GA:
     def __init__(self):
         self.pop_size = 40
         self.chr_n = 100
-        self.generarions = 1000000
+        self.generations = 1000000
         self.cross_rate = 0.6
         self.mutate_rate = 0.01
 
@@ -133,7 +133,7 @@ class GA:
     def evolve(self):
         pop = np.random.randint(0, 2, (self.pop_size, self.code_length), dtype=np.int32)
         pop_fit = self.cal_fitness(pop)
-        for g in range(self.generarions):
+        for g in range(self.generations):
             best_idx = np.argmax(pop_fit)
             best_fit = pop_fit[best_idx]
             best_indiv = pop[best_idx]
