@@ -133,7 +133,7 @@ if im.shape[2] == 4:
 
 # im = im/255.0
 
-target_img = skimage.transform.resize(im, (256,256), mode='reflect', preserve_range=True)
+target_img = skimage.transform.resize(im, (512,512), mode='reflect', preserve_range=True)
 skimage.io.imsave(os.path.join(results_folder, f'target.png'), target_img)
 max_diff = target_img.size*4
 
