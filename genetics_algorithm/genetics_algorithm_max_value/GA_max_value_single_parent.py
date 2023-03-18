@@ -72,7 +72,7 @@ class GA(object):
             self.population = self.mutation(parent_indiv)
             individuals_dec,fitness_values = self.cal_fitness()
             individuals_x = self.x_bound[0] + (self.x_bound[1] - self.x_bound[0]) * (individuals_dec / (2 ** self.gene_n))
-            yield np.append(individuals_x,parent_indiv_x), np.append(fitness_values,parent_fitness)
+            yield g, np.append(individuals_x,parent_indiv_x), np.append(fitness_values,parent_fitness)
 
             best_fitness = np.max(fitness_values)
             best_indiv = self.population[np.argmax(fitness_values)]
@@ -82,7 +82,7 @@ class GA(object):
                 parent_indiv = best_indiv
                 parent_indiv_dec = best_dec
             parent_indiv_x = self.x_bound[0] + (self.x_bound[1] - self.x_bound[0]) * (parent_indiv_dec / (2 ** self.gene_n))
-            yield parent_indiv_x, parent_fitness
+            # yield g, parent_indiv_x, parent_fitness
 
             print(f'Generation:{g:3d} - '
                   f'Top individual: {parent_indiv_x:.6f}, '
@@ -105,14 +105,16 @@ sca = ax.scatter([], [], marker="X", s=60, c='#00FF00', alpha=0.8)
 
 
 def update(*args):
-    individuals, fitness_values = next(gaiter)
+    g, individuals, fitness_values = next(gaiter)
     fx = individuals
     fv = fitness_values
     sca.set_offsets(np.column_stack((fx, fv)))
+    ax.set_title("generation="+str(g))
     # plt.savefig(f'best.png')
 
-ani = matplotlib.animation.FuncAnimation(fig, update, interval=600, repeat=False)
-plt.show()
+ani = matplotlib.animation.FuncAnimation(fig, update, interval=500, repeat=False)
+writergif = matplotlib.animation.PillowWriter(fps=1)
+ani.save('animation_single.gif', writer=writergif)
 
 
 

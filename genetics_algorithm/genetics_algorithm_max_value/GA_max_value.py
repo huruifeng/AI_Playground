@@ -87,7 +87,7 @@ class GA(object):
         for g in range(self.generations):
             individuals,fitness_values = self.cal_fitness()
             individuals_x =  self.x_bound[0]+(self.x_bound[1]-self.x_bound[0])*(individuals/(2**self.gene_n))
-            yield individuals_x, fitness_values
+            yield g, individuals_x, fitness_values
 
             best_indvi = self.population[np.argmax(fitness_values)]
             print(f'Generation:{g:3d} - '
@@ -116,14 +116,17 @@ sca = ax.scatter([], [], marker="X", s=100, c='#00FF00', alpha=0.8)
 
 
 def update(*args):
-    individuals, fitness_values = next(gaiter)
+    g,individuals, fitness_values = next(gaiter)
     fx = individuals
     fv = fitness_values
     sca.set_offsets(np.column_stack((fx, fv)))
+    ax.set_title("generation=" + str(g))
     # plt.savefig(f'best.png')
 
-ani = matplotlib.animation.FuncAnimation(fig, update, interval=600, repeat=False)
-plt.show()
+
+ani = matplotlib.animation.FuncAnimation(fig, update, interval=500, repeat=False)
+writergif = matplotlib.animation.PillowWriter(fps=1)
+ani.save('animation.gif', writer=writergif)
 
 
 
