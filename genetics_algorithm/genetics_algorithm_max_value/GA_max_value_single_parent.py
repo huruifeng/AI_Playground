@@ -82,7 +82,7 @@ class GA(object):
                 parent_indiv = best_indiv
                 parent_indiv_dec = best_dec
             parent_indiv_x = self.x_bound[0] + (self.x_bound[1] - self.x_bound[0]) * (parent_indiv_dec / (2 ** self.gene_n))
-            # yield g, parent_indiv_x, parent_fitness
+            yield g, parent_indiv_x, parent_fitness
 
             print(f'Generation:{g:3d} - '
                   f'Top individual: {parent_indiv_x:.6f}, '
