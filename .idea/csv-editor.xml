@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CsvFileAttributes">
+    <option name="attributeMap">
+      <map>
+        <entry key="\RNN\ImmuneApp\data\binding_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\data\original_data\Pearson.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-A_01_01_Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-A_01_01_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-A_03_01_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-A_25_01_Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-B_07_02_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-B_08_01_Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-B_08_01_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-B_18_01_Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-C_07_01_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-C_07_02_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\unannotated_Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\unannotated_Melanoma_tissue_sample_of_patient_8.txt_forgibbs.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

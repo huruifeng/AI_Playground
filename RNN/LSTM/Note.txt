@@ -1,1 +1,7 @@
 http://colah.github.io/posts/2015-08-Understanding-LSTMs/
+
+LSTM细节分析理解（pytorch版） https://zhuanlan.zhihu.com/p/79064602
+
+https://wandb.ai/authors/rnn-viz/reports/Under-the-Hood-of-Long-Short-Term-Memory-LSTM---VmlldzoyNjY0MTg?galleryTag=intermediate
+
+https://blog.csdn.net/mzpmzk/article/details/80548927
