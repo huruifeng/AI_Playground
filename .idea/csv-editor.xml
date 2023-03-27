@@ -3,20 +3,6 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="\RNN\ImmuneApp\data\binding_data.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\RNN\ImmuneApp\data\original_data\Pearson.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\RNN\ImmuneApp\references\ImmuneApp-main\results\HLA-A_01_01_Melanoma_tissue_sample_of_patient_5.txt_forgibbs.csv">
           <value>
             <Attribute>
