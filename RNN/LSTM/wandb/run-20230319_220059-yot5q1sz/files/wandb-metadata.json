@@ -1,0 +1,49 @@
+{
+    "os": "Windows-10-10.0.22621-SP0",
+    "python": "3.9.16",
+    "heartbeatAt": "2023-03-20T02:01:00.337349",
+    "startedAt": "2023-03-20T02:00:59.492199",
+    "docker": null,
+    "cuda": null,
+    "args": null,
+    "state": "running",
+    "program": "RNN/LSTM/OneToMany.ipynb",
+    "root": "F:/PyCharmProjects/AI_Playground",
+    "git": {
+        "remote": "https://github.com/huruifeng/AI_Playground.git",
+        "commit": "e9b2a4a330eb563e406a6c2382b8e8dde1473734"
+    },
+    "email": "442490020@qq.com",
+    "host": "RuifengHu-PC",
+    "username": "hurui",
+    "executable": "D:\\anaconda3\\envs\\AIML\\python.exe",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 3501.0,
+        "min": 0.0,
+        "max": 3501.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3501.0,
+            "min": 0.0,
+            "max": 3501.0
+        }
+    ],
+    "disk": {
+        "total": 1063.0083923339844,
+        "used": 106.17287063598633
+    },
+    "gpu": "GeForce GTX 760",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "GeForce GTX 760",
+            "memory_total": 2147483648
+        }
+    ],
+    "memory": {
+        "total": 23.944072723388672
+    }
+}
